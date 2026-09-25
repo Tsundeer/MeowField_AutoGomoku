@@ -167,6 +167,15 @@ class App:
             command=lambda _v: self._on_setting_change())
         self.opt_delay.pack(side="left", padx=(8, 0))
 
+        import os as _os
+        self._logical_cpus = _os.cpu_count() or 0
+        self.var_threads_hint = ctk.StringVar(
+            value=f"线程数 0 = 用满全部逻辑核（本机 {self._logical_cpus} 逻辑核；"
+                  f"建议留 1-2 核给系统时可填 {max(1, self._logical_cpus - 2)}）")
+        ctk.CTkLabel(box, textvariable=self.var_threads_hint,
+                     text_color="#8f8f8f", font=("Microsoft YaHei UI", 11)
+                     ).pack(anchor="w", padx=12, pady=(0, 2))
+
         self.var_engine_info = ctk.StringVar(value="")
         ctk.CTkLabel(box, textvariable=self.var_engine_info,
                      text_color="#8f8f8f").pack(anchor="w", padx=12, pady=(4, 8))
@@ -274,6 +283,10 @@ class App:
             move_delay=float(self.var_delay.get()),
             engine_threads=threads,
         )
+        self.var_threads_hint.set(
+            f"当前线程数：{threads}"
+            + ("（用满全部逻辑核，本机 %d 逻辑核）" % self._logical_cpus
+               if threads == 0 else ""))
         self._save_config()
 
     def _check_update(self):

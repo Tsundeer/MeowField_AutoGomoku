@@ -13,8 +13,11 @@
 """
 from __future__ import annotations
 
+import ctypes
 import logging
+import os
 import queue
+import subprocess
 import sys
 import threading
 
@@ -88,10 +91,62 @@ def build_services():
     return settings, player, detector, controller
 
 
+_DECLINED_KEY = "MEOWFIELD_ADMIN_DECLINED"
+
+
+def _has_relaunch_been_declined() -> bool:
+    return os.environ.get(_DECLINED_KEY) == "1"
+
+
+def is_admin() -> bool:
+    try:
+        return bool(ctypes.windll.shell32.IsUserAnAdmin())
+    except Exception:
+        return False
+
+
+def _relaunch_as_admin() -> bool:
+    """以管理员身份重启自身（ShellExecute runas）。
+
+    返回 True 表示已发起重启（当前进程应退出）；
+    用户取消 UAC 返回 False，调用方降级为普通权限继续。
+    """
+    params = subprocess.list2cmdline(sys.argv)
+    ret = ctypes.windll.shell32.ShellExecuteW(
+        None, "runas", sys.executable, params, None, 1)  # SW_SHOWNORMAL
+    return int(ret) > 32
+
+
+def ensure_admin_or_relaunch() -> bool:
+    """保证点击可送达游戏窗口：游戏常以管理员运行，普通权限进程的
+    SendInput 会被 UIPI 拦截。
+
+    返回 True=当前已是管理员；False=已发起提权重启（本进程应退出）或
+    用户取消提权（降级为普通权限继续，但自动点击可能无效）。
+    """
+    log = logging.getLogger("meowfield.app")
+    if is_admin():
+        return True
+    log.warning("当前为普通权限，请求管理员权限（UAC）…")
+    if _relaunch_as_admin():
+        log.info("已发起提权重启，本进程退出")
+        return False
+    os.environ[_DECLINED_KEY] = "1"
+    log.warning("管理员提权被取消，降级为普通权限继续（自动点击可能无效）")
+    return False
+
+
 def main() -> int:
     setup_logging()
     sys.excepthook = _excepthook
     logger.info("%s v%s 启动", APP_TITLE, __version__)
+
+    if is_admin():
+        logger.info("以管理员权限运行")
+    elif not _has_relaunch_been_declined() and _relaunch_as_admin():
+        return 0  # 已发起提权重启，本进程退出
+    else:
+        logger.warning("未获得管理员权限，若游戏以管理员运行则自动点击将被系统拦截")
 
     try:
         settings, player, detector, controller = build_services()

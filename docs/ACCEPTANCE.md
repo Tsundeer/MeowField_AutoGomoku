@@ -28,3 +28,14 @@
 
 - 内置引擎不限时模式在均势局面搜索不可控，统一走 20s/步预算（RAPFI_TURN_TIME_MS）
 - 截屏对独占全屏不可用，需窗口化（与 v1.0 一致）
+
+## v1.1.1 增量验收（2026-09-26）
+
+- [x] 检查更新重写：API(ETag 条件请求，304 不计限额) -> releases.atom -> HTML 页面
+      三级降级 + 本地缓存 1 小时；实测 API 200 拿到 v1.1.0、缓存命中、ETag 生效
+- [x] 线程数动态提示：0 = 用满全部逻辑核（显示本机 N 逻辑核），随设置即时更新
+- [x] 启动自动申请管理员（ShellExecute runas）；用户取消 UAC 则降级继续并写警告日志
+      （实测降级路径：UI 正常、日志含"未获得管理员权限…"警告）
+      —— 原因：游戏常以管理员运行，普通权限进程的 SendInput 被 UIPI 拦截导致无法点击
+- [x] Inno Setup 6 安装并加入用户 PATH；scripts/build-win-x64.ps1 产出
+      便携 zip + 安装版 Setup.exe（MeowField_AutoGomoku-{ver}-win-x64-Setup.exe）
