@@ -23,3 +23,6 @@ engines/
 .idea/
 .vscode/
 .vs/
+
+# PyInstaller 副产物（构建脚本按参数生成，不入库）
+MeowField_AutoGomoku.spec
