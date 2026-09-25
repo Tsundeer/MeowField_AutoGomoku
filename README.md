@@ -1,6 +1,6 @@
 # MeowField_AutoGomoku 使用说明书
 
-**版本 1.1.1** · 作者与软件署名：薮猫 · 项目仓库：github.com/Tsundeer/MeowField_AutoGomoku
+**版本 1.1.2** · 作者与软件署名：薮猫 · 项目仓库：github.com/Tsundeer/MeowField_AutoGomoku
 
 面向 Windows 的《开放空间》五子棋自动识别与对弈工具
 

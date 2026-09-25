@@ -21,6 +21,7 @@ DEFAULT_SETTINGS = {
     "engine": "auto",
     "move_delay": 1.0,
     "engine_threads": 0,
+    "think_limit": 20.0,
 }
 
 

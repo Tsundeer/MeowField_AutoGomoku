@@ -85,6 +85,7 @@ def build_services():
         move_delay=settings.get("move_delay", 1.0),
         engine_threads=settings.get("engine_threads", 0),
         engine_factory=engine_factory,
+        think_limit=settings.get("think_limit", 20.0),
     )
     detector = BoardDetector()
     controller = _WinController()

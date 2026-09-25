@@ -40,12 +40,13 @@ class AutoPlayService(threading.Thread):
 
     def __init__(self, our_color="auto", engine_kind="auto",
                  move_delay=1.0, engine_threads=None, save_shots=True,
-                 log_fn=None, engine_factory=None):
+                 log_fn=None, engine_factory=None, think_limit=None):
         super().__init__(daemon=True)
         self.our_color_opt = our_color        # "auto" / "1" / "2"
         self.engine_kind = engine_kind
         self.move_delay = move_delay
         self.engine_threads = int(engine_threads) if engine_threads is not None else None
+        self.think_limit = float(think_limit) if think_limit else None
         self.save_shots = save_shots
         self.q = queue.Queue()
         self._log_ext = log_fn
@@ -88,7 +89,8 @@ class AutoPlayService(threading.Thread):
             self._log_ext(msg)
 
     def set_params(self, our_color=None, engine_kind=None,
-                   move_delay=None, engine_threads=None, active=None):
+                   move_delay=None, engine_threads=None, active=None,
+                   think_limit=None):
         if our_color is not None:
             self.our_color_opt = our_color
             new_color = None if our_color == "auto" else int(our_color)
@@ -107,6 +109,8 @@ class AutoPlayService(threading.Thread):
         if engine_threads is not None and int(engine_threads) != (self.engine_threads or 0):
             self.engine_threads = int(engine_threads)
             self._restart_ai()
+        if think_limit is not None:
+            self.think_limit = float(think_limit) if float(think_limit) > 0 else None
         if active is not None:
             if active and not self.active:
                 self.active = True
@@ -420,7 +424,8 @@ class AutoPlayService(threading.Thread):
                 return
             ai = self._ensure_ai()
             t0 = time.time()
-            res = ai.best_move(self._think_board, self.our_color)
+            res = ai.best_move(self._think_board, self.our_color,
+                               time_limit=self.think_limit)
             self._think_result = res
             self._think_time = time.time() - t0
         except Exception as e:

@@ -41,6 +41,15 @@ C_BG_BOARD = "#EFD9A7"
 C_LINE = "#9C7B53"
 C_STAR = "#7d5f3f"
 
+# 主题双值颜色 (浅色, 深色)：CustomTkinter 随 appearance mode 自动切换
+THEME_DIM = ("#5a5a5a", "#8f8f8f")        # 次要说明文字
+THEME_DIM2 = ("#4a4a4a", "#a8a8a8")       # 状态条
+THEME_BADGE = ("#8a8a8a", "#6f6f6f")      # 版本角标
+THEME_LABEL = ("#444444", "#bdbdbd")      # 设置项标签
+THEME_LOG_FG = ("#fafafa", "#1b1b21")     # 日志底色
+THEME_GRAY_BTN = ("#e4e4ea", "#3A3A42")   # 中性按钮
+THEME_GRAY_BTN_H = ("#d6d6de", "#4a4a54")
+
 
 class App:
     def __init__(self, root, player, settings: dict, settings_store: SettingsStore):
@@ -84,7 +93,7 @@ class App:
         self.canvas.pack()
         self.var_status = tk.StringVar(value="正在查找游戏窗口…")
         ctk.CTkLabel(left, textvariable=self.var_status, wraplength=BOARD_PX,
-                     text_color="#a8a8a8", justify="left").pack(anchor="w", pady=(8, 0))
+                     text_color=THEME_DIM2, justify="left").pack(anchor="w", pady=(8, 0))
 
         # 右：控制 + 日志
         right = ctk.CTkFrame(main, fg_color="transparent")
@@ -97,13 +106,19 @@ class App:
         sub = ctk.CTkFrame(head, fg_color="transparent")
         sub.pack(fill="x")
         ctk.CTkLabel(sub, text="开放空间 · 自动识别与对弈助手（Rapfi 强引擎）",
-                     text_color="#8f8f8f").pack(side="left")
+                     text_color=THEME_DIM).pack(side="left")
         ctk.CTkLabel(sub, text=f"  v{__version__}",
-                     text_color="#6f6f6f").pack(side="left")
+                     text_color=THEME_BADGE).pack(side="left")
         ctk.CTkButton(sub, text="检查更新", width=76, height=22,
-                      fg_color="#3A3A42", hover_color="#4a4a54",
+                      fg_color=THEME_GRAY_BTN, hover_color=THEME_GRAY_BTN_H,
                       font=("Microsoft YaHei UI", 11),
                       command=self._check_update).pack(side="right")
+        self.seg_theme = ctk.CTkSegmentedButton(
+            sub, values=["深色", "浅色", "系统"], height=22, width=140,
+            font=("Microsoft YaHei UI", 11),
+            command=self._on_theme_change)
+        self.seg_theme.set("深色")
+        self.seg_theme.pack(side="right", padx=(0, 10))
 
         box = ctk.CTkFrame(right, corner_radius=14)
         box.pack(fill="x")
@@ -121,12 +136,12 @@ class App:
                       command=lambda: self.player.request_shot.set()).pack(
             side="left", padx=8)
         ctk.CTkButton(row1, text="打开调试目录", width=110, height=38,
-                      fg_color="#3A3A42", hover_color="#4a4a54",
+                      fg_color=THEME_GRAY_BTN, hover_color=THEME_GRAY_BTN_H,
                       command=self._open_debug).pack(side="left")
 
         row2 = ctk.CTkFrame(box, fg_color="transparent")
         row2.pack(fill="x", padx=12, pady=(8, 2))
-        ctk.CTkLabel(row2, text="我方棋子颜色", text_color="#bdbdbd").pack(side="left")
+        ctk.CTkLabel(row2, text="我方棋子颜色", text_color=THEME_LABEL).pack(side="left")
         self.seg_color = ctk.CTkSegmentedButton(
             row2, values=["自动", "黑", "白"], height=30,
             command=self._on_setting_change)
@@ -136,13 +151,13 @@ class App:
         ctk.CTkLabel(box, text="提示：轮到谁走由双方子数自动判断，与先后手颜色无关。\n"
                                "「自动」无需选择颜色：看到落子后即接管，并自动锁定你的棋子颜色；\n"
                                "开局第一手若轮到你，程序会自动下在中心 H7。",
-                     text_color="#8f8f8f", justify="left",
+                     text_color=THEME_DIM, justify="left",
                      font=("Microsoft YaHei UI", 11)).pack(anchor="w", padx=12,
                                                            pady=(4, 2))
 
         row3 = ctk.CTkFrame(box, fg_color="transparent")
         row3.pack(fill="x", padx=12, pady=(2, 4))
-        ctk.CTkLabel(row3, text="引擎", text_color="#bdbdbd").pack(side="left")
+        ctk.CTkLabel(row3, text="引擎", text_color=THEME_LABEL).pack(side="left")
         engine_names = ["auto", "rapfi", "simple"]
         if find_rapfi_exe() is None:
             engine_names = ["auto", "simple"]
@@ -152,14 +167,14 @@ class App:
             height=28, command=lambda _v: self._on_setting_change())
         self.cmb_engine.pack(side="left", padx=(8, 14))
 
-        ctk.CTkLabel(row3, text="线程数", text_color="#bdbdbd").pack(side="left")
+        ctk.CTkLabel(row3, text="线程数", text_color=THEME_LABEL).pack(side="left")
         self.var_threads = ctk.StringVar(value="0")
         self.ent_threads = ctk.CTkEntry(row3, textvariable=self.var_threads,
                                         width=56, height=28, justify="center")
         self.ent_threads.pack(side="left", padx=(8, 14))
         self.ent_threads.bind("<FocusOut>", lambda _e: self._on_setting_change())
 
-        ctk.CTkLabel(row3, text="落子停顿(秒)", text_color="#bdbdbd").pack(side="left")
+        ctk.CTkLabel(row3, text="落子停顿(秒)", text_color=THEME_LABEL).pack(side="left")
         self.var_delay = ctk.StringVar(value="1.0")
         self.opt_delay = ctk.CTkOptionMenu(
             row3, values=["0.0", "0.5", "1.0", "1.5", "2.0", "3.0"],
@@ -167,25 +182,34 @@ class App:
             command=lambda _v: self._on_setting_change())
         self.opt_delay.pack(side="left", padx=(8, 0))
 
+        ctk.CTkLabel(row3, text="思考上限(秒)", text_color=THEME_LABEL).pack(side="left")
+        self.var_think = ctk.StringVar(value="20")
+        self.opt_think = ctk.CTkOptionMenu(
+            row3, values=["5", "10", "15", "20", "30", "60", "120"],
+            variable=self.var_think, width=80, height=28,
+            command=lambda _v: self._on_setting_change())
+        self.opt_think.pack(side="left", padx=(8, 0))
+
         import os as _os
         self._logical_cpus = _os.cpu_count() or 0
         self.var_threads_hint = ctk.StringVar(
             value=f"线程数 0 = 用满全部逻辑核（本机 {self._logical_cpus} 逻辑核；"
-                  f"建议留 1-2 核给系统时可填 {max(1, self._logical_cpus - 2)}）")
+                  f"建议留 1-2 核给系统时可填 {max(1, self._logical_cpus - 2)}）。"
+                  f"思考上限到点或找到必胜即落子")
         ctk.CTkLabel(box, textvariable=self.var_threads_hint,
-                     text_color="#8f8f8f", font=("Microsoft YaHei UI", 11)
+                     text_color=THEME_DIM, font=("Microsoft YaHei UI", 11)
                      ).pack(anchor="w", padx=12, pady=(0, 2))
 
         self.var_engine_info = ctk.StringVar(value="")
         ctk.CTkLabel(box, textvariable=self.var_engine_info,
-                     text_color="#8f8f8f").pack(anchor="w", padx=12, pady=(4, 8))
+                     text_color=THEME_DIM).pack(anchor="w", padx=12, pady=(4, 8))
 
         logbox = ctk.CTkFrame(right, corner_radius=14)
         logbox.pack(fill="both", expand=True, pady=(10, 0))
-        ctk.CTkLabel(logbox, text="运行日志", text_color="#bdbdbd").pack(
+        ctk.CTkLabel(logbox, text="运行日志", text_color=THEME_LABEL).pack(
             anchor="w", padx=12, pady=(8, 0))
         self.txt_log = ctk.CTkTextbox(logbox, font=("Microsoft YaHei UI", 11),
-                                      wrap="word", fg_color="#1b1b21",
+                                      wrap="word", fg_color=THEME_LOG_FG,
                                       border_width=0)
         self.txt_log.pack(fill="both", expand=True, padx=8, pady=(2, 8))
         self.txt_log.configure(state="disabled")
@@ -282,11 +306,17 @@ class App:
             engine_kind=self.var_engine.get(),
             move_delay=float(self.var_delay.get()),
             engine_threads=threads,
+            think_limit=float(self.var_think.get()),
         )
         self.var_threads_hint.set(
             f"当前线程数：{threads}"
             + ("（用满全部逻辑核，本机 %d 逻辑核）" % self._logical_cpus
                if threads == 0 else ""))
+        self._save_config()
+
+    def _on_theme_change(self, value: str):
+        mode = {"深色": "dark", "浅色": "light", "系统": "system"}.get(value, "dark")
+        ctk.set_appearance_mode(mode)
         self._save_config()
 
     def _check_update(self):
@@ -389,6 +419,17 @@ class App:
             self.var_threads.set(str(max(0, int(cfg.get("engine_threads", 0)))))
         except Exception:
             pass
+        try:
+            t = float(cfg.get("think_limit", 20))
+            opts = self.opt_think.cget("values")
+            self.var_think.set(str(int(t)) if str(int(t)) in opts else "20")
+        except Exception:
+            pass
+        theme_label = {"dark": "深色", "light": "浅色", "system": "系统"}.get(
+            cfg.get("theme", "dark"), "深色")
+        self.seg_theme.set(theme_label)
+        ctk.set_appearance_mode({"深色": "dark", "浅色": "light",
+                                 "系统": "system"}.get(theme_label, "dark"))
 
     def _save_config(self):
         try:
@@ -397,6 +438,9 @@ class App:
                 "engine": self.var_engine.get(),
                 "move_delay": self.var_delay.get(),
                 "engine_threads": int(self.var_threads.get() or 0),
+                "think_limit": float(self.var_think.get()),
+                "theme": {"深色": "dark", "浅色": "light", "系统": "system"}[
+                    self.seg_theme.get()],
             })
         except Exception:
             pass

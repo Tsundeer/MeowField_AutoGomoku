@@ -39,3 +39,14 @@
       —— 原因：游戏常以管理员运行，普通权限进程的 SendInput 被 UIPI 拦截导致无法点击
 - [x] Inno Setup 6 安装并加入用户 PATH；scripts/build-win-x64.ps1 产出
       便携 zip + 安装版 Setup.exe（MeowField_AutoGomoku-{ver}-win-x64-Setup.exe）
+
+## v1.1.2 增量验收（2026-09-26）
+
+- [x] 深浅色主题：设置区右上「深色/浅色/系统」分段切换，随持久化恢复；
+      全部界面颜色改为 (浅色, 深色) 双值随主题自动切换，棋盘木色两种主题下不变
+- [x] 思考上限回归：设置项「思考上限(秒)」默认 20（5~120 可选），
+      链路 UI -> AutoPlayService.think_limit -> Rapfi best_move 每步下发
+      INFO timeout_turn（运行时改预算无需重启引擎）；simple 引擎同链路生效
+- [x] 窗口匹配再收紧：兜底排除 python/pythonw/本程序 exe 名，
+      提权重启等场景不再短暂误匹配自身实例（实测日志显示明确拒绝原因）
+- [x] pytest 全绿；exe 打包冒烟通过

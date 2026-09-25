@@ -221,8 +221,11 @@ class RapfiAI:
                 self._expect_ok(timeout=15)
 
     def best_move(self, grid, my_color, time_limit=None, **_):
-        """grid: 13x13 (0空 1黑 2白)；不限时模式（启动时已配置）。
-        返回 (r, c, info) 或 None。"""
+        """grid: 13x13 (0空 1黑 2白)。
+
+        time_limit: 本步思考上限（秒）；None 使用启动时配置的预算。
+        返回 (r, c, info) 或 None。
+        """
         n = self.size
         # 空盘直接天元：注意必须在发送 BOARD 之前判断，
         # 否则 BOARD 缺少 DONE 会让引擎卡在读子循环。
@@ -233,6 +236,9 @@ class RapfiAI:
         with self.lock:
             if not self.proc:
                 self.start()
+            if time_limit:
+                # 协议允许随时改 INFO：运行时调整预算，无需重启引擎
+                self._send(f"INFO timeout_turn {max(100, int(time_limit * 1000))}")
             self._send("INFO rule 0")   # 自由规则（无禁手）
             self._send("BOARD")
             stones = 0
@@ -244,8 +250,8 @@ class RapfiAI:
                         self._send(f"{c},{r},{t}")   # 协议: x,y,t（逗号分隔）
                         stones += 1
             self._send("DONE")
-            # 等待引擎自行完成（预算内必胜会秒下，均势走满预算）
-            line = self._readline(timeout=max(60.0, self.turn_time_ms / 1000 * 3 + 30))
+            budget = float(time_limit) if time_limit else self.turn_time_ms / 1000
+            line = self._readline(timeout=max(60.0, budget * 3 + 30))
             if line is None:
                 raise RuntimeError("rapfi 未在时限内返回着法")
             m = MOVE_RE.match(line)
@@ -275,7 +281,7 @@ class SimpleAI:
         self.core.reset()
 
     def best_move(self, grid, my_color, time_limit=None, max_depth=64, **_):
-        # 内置引擎无限时模式下给个很大的上限，迭代加深会自行收敛
+        # 内置引擎：未配置时限时给个较大的上限，迭代加深会自行收敛
         res = self.core.best_move(grid, my_color,
                                   time_limit=time_limit if time_limit else 600,
                                   max_depth=max_depth)

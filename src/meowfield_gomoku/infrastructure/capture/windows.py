@@ -85,7 +85,18 @@ def find_game_window():
     for hwnd, title, proc in candidates:
         if any(hint in proc.lower() for hint in C.WINDOW_PROCESS_HINTS):
             return hwnd, title, proc
-    return candidates[0]
+    # 兜底：排除本程序自身可执行（python/pythonw/打包 exe），
+    # 避免提权重启等场景误匹配自己的另一个实例
+    import os
+    import sys
+    self_names = {os.path.basename(sys.executable).lower(),
+                  "python.exe", "pythonw.exe", "meowfield_autogomoku.exe"}
+    for hwnd, title, proc in candidates:
+        if proc.lower() not in self_names:
+            return hwnd, title, proc
+    raise RuntimeError(
+        f"仅找到本程序自身的窗口，未找到游戏窗口（关键词 "
+        f"{C.WINDOW_TITLE_KEYWORDS}，进程 {C.WINDOW_PROCESS_HINTS}）")
 
 
 # ---------- 客户区几何 ----------
