@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "meowfield-autogomoku"
+description = "开放空间 自动五子棋：棋盘识别 + Rapfi 强引擎自动对弈"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+authors = [{ name = "薮猫" }]
+keywords = ["gomoku", "automation", "opencv", "rapfi"]
+classifiers = [
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+]
+# 运行依赖与 requirements.txt 保持一致（requirements 是 pip 直装入口）
+dependencies = [
+    "opencv-python>=4.8",
+    "numpy>=1.24",
+    "mss>=9.0",
+    "pywin32>=306; sys_platform == 'win32'",
+    "pillow>=10.0",
+    "customtkinter>=5.2",
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pyinstaller>=6.0",
+]
+
+[project.gui-scripts]
+meowfield-autogomoku = "meowfield_gomoku.app:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "meowfield_gomoku.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

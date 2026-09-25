@@ -10,7 +10,7 @@ import time
 
 import numpy as np
 
-import config as C
+from ... import config as C
 
 _user32 = ctypes.windll.user32
 _kernel32 = ctypes.windll.kernel32
@@ -60,6 +60,8 @@ def find_game_window():
 
     返回 (hwnd, title, proc_name)；找不到抛 RuntimeError。
     """
+    import os
+    my_pid = os.getpid()
     candidates = []
     for hwnd in _enum_windows():
         if not _user32.IsWindowVisible(hwnd):
@@ -73,6 +75,8 @@ def find_game_window():
         if any(k in title for k in C.WINDOW_TITLE_KEYWORDS):
             pid = wt.DWORD()
             _user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+            if pid.value == my_pid:
+                continue  # 排除本程序自身窗口（标题同样含关键词）
             proc = _process_name(pid.value)
             candidates.append((hwnd, title, proc))
     if not candidates:

@@ -15,12 +15,23 @@ import sys
 import threading
 import time
 
-import engine as eng
+from .simple_engine import GomokuEngine as _GomokuEngine
 
-import config as C
+from ... import config as C
 
-PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-ENGINES_DIR = os.path.join(PROJECT_ROOT, "engines")
+def _locate_engines_dir() -> str:
+    """engines/ 定位：打包后取 PyInstaller 解包目录；源码运行为仓库根。"""
+    if getattr(sys, "frozen", False):
+        base = getattr(sys, "_MEIPASS", None)
+        if base:
+            return os.path.join(base, "engines")
+        return os.path.join(os.path.dirname(sys.executable), "engines")
+    # src/meowfield_gomoku/infrastructure/engine/ai_factory.py -> 仓库根
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        "..", "..", "..", "..", "engines")
+
+
+ENGINES_DIR = os.path.abspath(_locate_engines_dir())
 
 MOVE_RE = re.compile(r"^\s*(\d{1,3})[ ,]+(\d{1,3})\s*$")
 
@@ -252,7 +263,7 @@ class SimpleAI:
     def __init__(self, size=13, log_fn=None):
         self.size = size
         self.log = log_fn or (lambda s: None)
-        self.core = eng.GomokuEngine(size)
+        self.core = _GomokuEngine(size)
 
     def start(self):
         pass

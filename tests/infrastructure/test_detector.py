@@ -1,21 +1,16 @@
 # -*- coding: utf-8 -*-
-"""识别器离线测试：基准识别 + 多分辨率 + 合成棋子回读。
-
-用法：python tools/test_detector.py
-"""
+"""识别器离线测试：基准识别 + 多分辨率 + 合成棋子回读。"""
 import os
-import sys
 
 import cv2
 import numpy as np
+import pytest
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, ROOT)
+from meowfield_gomoku.infrastructure.vision import detector as det_mod
+from meowfield_gomoku.infrastructure.storage.settings_store import app_data_dir
 
-import detector as det_mod  # noqa: E402
-
-SAMPLE = os.path.join(ROOT, "samples", "board_1080p.png")
-DBG = os.path.join(ROOT, "debug")
+SAMPLE = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "samples", "board_1080p.png")
+DBG = os.path.join(str(app_data_dir()), "debug")
 os.makedirs(DBG, exist_ok=True)
 
 fails = []
@@ -72,14 +67,14 @@ def draw_stone(img, x, y, sp, color):
                     (110, 105, 100), -1, cv2.LINE_AA)
 
 
-def main():
+def test_detector_all():
     img0 = cv2.imread(SAMPLE)
     base_expect = {"G7": 2}
 
     # 1) 原图
     d0 = run_case("原图1080p", img0, base_expect)
     if d0 is None:
-        sys.exit(1)
+        pytest.fail(f'共 {len(fails)} 项失败: {fails}', pytrace=False)
     pts = d0.points.copy()
     sp = d0.spacing
 
@@ -107,11 +102,8 @@ def main():
         # 底下那颗真子（G7白）若被覆盖则以覆盖后的为准
         run_case(f"合成棋子#{trial+1}", img, expect)
 
-    print()
     if fails:
-        print(f"共 {len(fails)} 项失败: {fails}")
-        sys.exit(1)
-    print("全部通过 ✔")
+        pytest.fail(f"共 {len(fails)} 项失败: {fails}", pytrace=False)
 
 
 if __name__ == "__main__":

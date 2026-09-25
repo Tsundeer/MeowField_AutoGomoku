@@ -13,6 +13,7 @@
 5. 点击加固：校验前台窗口（失败重试并预热点击），点击后等棋盘确认，
    超时自动重试。
 """
+import logging
 import random
 import queue
 import threading
@@ -20,18 +21,26 @@ import time
 
 import numpy as np
 
-import config as C
-import detector as det_mod
-import window as win
-from gomoku_ai import create_ai
+from .. import config as C
+from ..domain.board import coord_label
+from ..infrastructure.vision import detector as det_mod
+from ..infrastructure.capture import windows as win
+from ..infrastructure.engine.ai_factory import create_ai
 
 COLOR_NAME = {1: "黑", 2: "白"}
 
+logger = logging.getLogger("meowfield.play")
 
-class AutoPlayer(threading.Thread):
+
+class AutoPlayService(threading.Thread):
+    """自动对弈服务：识别轮询 + 回合状态机 + 自动落子（后台线程）。
+
+    通过 engine_factory 注入引擎创建（依赖倒置），便于测试替换。
+    """
+
     def __init__(self, our_color="auto", engine_kind="auto",
                  move_delay=1.0, engine_threads=None, save_shots=True,
-                 log_fn=None):
+                 log_fn=None, engine_factory=None):
         super().__init__(daemon=True)
         self.our_color_opt = our_color        # "auto" / "1" / "2"
         self.engine_kind = engine_kind
@@ -44,6 +53,8 @@ class AutoPlayer(threading.Thread):
         self.active = False
         self.request_shot = threading.Event()
 
+        self._engine_factory = engine_factory
+        self._log_ext = log_fn or (lambda msg: logger.info(msg))
         self.detector = det_mod.BoardDetector()
         self.ai = None
         self.hwnd = None
@@ -119,8 +130,10 @@ class AutoPlayer(threading.Thread):
 
     def _ensure_ai(self):
         if self.ai is None:
-            self.ai = create_ai(self.engine_kind, C.BOARD_N, log_fn=self.log,
-                                threads=self.engine_threads)
+            factory = self._engine_factory or (
+                lambda kind, size, log_fn: create_ai(kind, size, log_fn=log_fn,
+                                                     threads=self.engine_threads))
+            self.ai = factory(self.engine_kind, C.BOARD_N, self.log)
             self.ai.start()
             self.q.put(("engine", type(self.ai).name))
         return self.ai
@@ -581,7 +594,8 @@ class AutoPlayer(threading.Thread):
     def _save_image(self, img, tag):
         import cv2
         import os
-        d = os.path.join(os.path.dirname(os.path.abspath(__file__)), "debug")
+        from ..infrastructure.storage.settings_store import app_data_dir
+        d = os.path.join(str(app_data_dir()), "debug")
         os.makedirs(d, exist_ok=True)
         path = os.path.join(d, f"{tag}_{time.strftime('%Y%m%d_%H%M%S')}.png")
         try:
@@ -597,3 +611,7 @@ class AutoPlayer(threading.Thread):
             last[key] = now
             self._last_log_ts = last
             self.log(msg)
+
+
+# 兼容旧名（v1.0 的 auto_player.AutoPlayer）
+AutoPlayer = AutoPlayService

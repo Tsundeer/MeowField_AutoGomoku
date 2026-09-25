@@ -9,15 +9,12 @@ import os
 import sys
 import time
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, ROOT)
+import cv2
 
-import cv2  # noqa: E402
+from meowfield_gomoku.infrastructure.vision import detector as det_mod
+from meowfield_gomoku.infrastructure.storage.settings_store import app_data_dir
 
-import detector as det_mod  # noqa: E402
-import config as C  # noqa: E402
-
-DBG = os.path.join(ROOT, "debug")
+DBG = os.path.join(str(app_data_dir()), "debug")
 os.makedirs(DBG, exist_ok=True)
 
 

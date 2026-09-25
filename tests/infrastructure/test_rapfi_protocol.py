@@ -1,18 +1,15 @@
 # -*- coding: utf-8 -*-
-"""Rapfi 引擎协议连通测试（不依赖游戏）。
-
-用法：python tools/test_rapfi.py
-"""
+"""Rapfi 引擎协议连通测试（需 engines/ 内有引擎，较慢：含 20s/步长考）。"""
 import os
-import sys
 import time
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, ROOT)
+import numpy as np
+import pytest
 
-import numpy as np  # noqa: E402
+from meowfield_gomoku.infrastructure.engine.ai_factory import RapfiAI, find_rapfi_exes
 
-from gomoku_ai import RapfiAI, find_rapfi_exes  # noqa: E402
+pytestmark = pytest.mark.skipif(not find_rapfi_exes(),
+                                reason="engines/ 下未找到 rapfi 引擎")
 
 N = 13
 logs = []
@@ -23,7 +20,7 @@ def log(s):
     print(s)
 
 
-def main():
+def test_rapfi_protocol():
     exes = find_rapfi_exes()
     print("候选引擎:", [os.path.basename(p) for p in exes])
     assert exes, "engines/ 下没有 rapfi"

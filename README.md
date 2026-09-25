@@ -1,4 +1,8 @@
-# MeowField 自动五子棋（开放空间）
+# MeowField_AutoGomoku 使用说明书
+
+**版本 1.1.0** · 作者与软件署名：薮猫 · 项目仓库：github.com/Tsundeer/MeowField_AutoGomoku
+
+面向 Windows 的《开放空间》五子棋自动识别与对弈工具
 
 对游戏《开放空间》（进程 `launcher.exe`，窗口标题"开放空间"）的五子棋小游戏进行
 **自动识别对方落子 + AI 自动落子** 的桌面工具。分辨率无关，支持任意窗口位置。
@@ -118,9 +122,21 @@ engines/         Rapfi 引擎（官方 250615 版，含各指令集构建，自�
 
 ## 致谢与许可
 
-- 本工具代码基于 [MIT License](LICENSE) 开源。
+- 本工具代码基于 **GPL-3.0** 开源（见 [LICENSE](LICENSE)）。
 - 内置对弈引擎 [Rapfi](https://github.com/dhbloo/rapfi)（Gomocup 冠军引擎），
- 版权归原作者所有，遵循 **GPL-3.0** 开源；其源码可在其仓库自由获取。
+ 版权归原作者所有，同样遵循 **GPL-3.0** 开源，其源码可在其仓库自由获取。
 - 感谢游戏《开放空间》玩家社区分享的先手开局思路。
 
 > 免责声明：本工具仅供学习交流使用，请自行评估在游戏中使用自动化工具的合规风险。
+
+## 数据与日志位置
+
+- 用户设置：`%LocalAppData%\MeowField_AutoGomoku\settings.json`（原子写入，含 `.bak` 备份）
+- 运行日志：`%LocalAppData%\MeowField_AutoGomoku\logs\`（按日滚动，保留 14 天）
+- 调试截图：`%LocalAppData%\MeowField_AutoGomoku\debug\`（界面「打开调试目录」直达）
+
+## 开发者文档
+
+- 架构说明：[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- 打包与发布：[docs/packaging-and-updates.md](docs/packaging-and-updates.md)
+- 测试：`python -m pytest tests/`

@@ -12,16 +12,12 @@
 import cv2
 import numpy as np
 
-import config as C
+from ... import config as C
+from ...domain.board import coord_label
 
 
 class BoardNotFound(Exception):
     pass
-
-
-def coord_label(r, c):
-    """(row, col) 0基 -> 游戏坐标，如 (6,6) -> G7。"""
-    return f"{chr(ord('A') + c)}{r + 1}"
 
 
 class Detection:

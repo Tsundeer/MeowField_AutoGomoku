@@ -1,18 +1,11 @@
 # -*- coding: utf-8 -*-
-"""内置引擎(engine.py)战术与性能测试。
-
-用法：python tools/test_engine.py
-"""
-import os
-import sys
+"""内置引擎战术与性能测试。"""
 import time
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, ROOT)
+import numpy as np
+import pytest
 
-import numpy as np  # noqa: E402
-
-import engine as eng  # noqa: E402
+from meowfield_gomoku.infrastructure.engine import simple_engine as eng
 
 N = 13
 fails = []
@@ -105,8 +98,5 @@ for step in range(20):
     color = 3 - color
 check("自对弈20步", ok, f"{time.time()-t0:.1f}s")
 
-print()
 if fails:
-    print(f"共 {len(fails)} 项失败: {fails}")
-    sys.exit(1)
-print("全部通过 ✔")
+    pytest.fail(f"共 {len(fails)} 项失败: {fails}", pytrace=False)
